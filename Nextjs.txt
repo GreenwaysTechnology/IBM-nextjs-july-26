@@ -1261,4 +1261,205 @@ New Todo Form
 technical implementation:
 
 1.You have to use "Browser Storage" for storing todos task.	
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			 Client and server component useage patterns
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+1.Server component uses client component
+
+Rules:
+1.If server components uses client, the client component must be marked 'use client' directive, if you dont mark , you get "build time" error
+
+app/patterns/serverusesclient/page.js
+import Counter from "@/app/counter/components/counter"
+
+export default function ServerComponent(){
+    return <div>
+        <h1>Counter Page</h1>
+        <Counter/>
+    </div>
+}
+
+app/patterns/serverusesclient/components/counter.jsx
+//by default all components are server components, this component is client component because
+//this component uses "state and usestate hook"
+//if any component uses state/useState hook or any hook, that component must be client component.
+
+'use client'
+
+import { useState } from "react"
+
+export default function Counter() {
+    //declare use state with inital state
+    const [value, setValue] = useState(0)
+
+    const onIncrement = () => {
+        setValue(value + 1)
+    }
+    return <>
+        <h1>Counter : {value}</h1>
+        <button onClick={onIncrement}>+</button>
+    </>
+}
+
+2.Server uses another Server Component
+
+Rules:
+  Any server can use another server component without any special declaration
+
+src/app/serverusesserver/components/Greeter.jsx
+
+export default function GreeterComponent(){
+    return <h1>Greeter</h1>
+}
+
+
+src/app/serverusesserver/page.js
+import Greeter from "@/app/serverusesserver/components/Greeter"
+
+export default function ServerComponent(){
+    return <div>
+         <Greeter/>
+    </div>
+}
+
+3.Client Component uses another Server Component
+
+src/app/clientusesserver/components/MyServer.jsx
+
+export default function MyServer(){
+    return <div>
+         <h1>Server Component</h1>
+    </div>
+}
+
+src/app/clientusesserver/components/MyClient.jsx
+
+'use client'
+
+import MyServer from "@/app/clientusesserver/components/MyServer"
+
+export default function MyClient(){
+    return <div>
+         <MyServer/>
+    </div>
+}
+
+src/app/clientusesserver/page.js
+import MyClient from "@/app/clientusesserver/components/MyClient"
+
+export default function Home() {
+   return <MyClient/>
+}
+
+Rules
+	if client uses another server component, "server component automatically becomes client component"
+	When we use this pattern we loose server rendering
+
+In the above code Server component runs in the client only.
+
+	What if "client uses server component" but at the same time, i don't want to loose server rendering feature?
+
+Solution:
+     Pass Server Component as Prop to Child  component.
+
+Soultion:
+
+
+'use client'
+
+src/app/clientusesserver/components/MyClient.jsx
+
+export default function MyClient(props) {
+    return <div>
+        {props.children}
+    </div>
+}
+
+
+src/app/clientusesserver/page.js
+
+import MyClient from "@/app/clientusesserver/components/MyClient"
+import MyServer from "@/app/clientusesserver/components/MyServer"
+
+export default function Home() {
+    return <MyClient>
+        <MyServer />
+    </MyClient>
+}
+
+
+4.Client Components uses Another Client Component.
+
+src/app/clientusesclient/components/ClientTwo.jsx
+
+'use client'
+
+export default function ClientTwoComponent(){
+         return <h1>Client Two Component</h1>
+}
+
+src/app/clientusesclient/components/ClientOne.jsx
+
+'use client'
+
+import ClientTwoComponent from "@/app/clientusesclient/components/ClientTwo"
+
+export default function ClientOneComponent(){
+         return <div>
+            <h1>Client One Component</h1>
+            <ClientTwoComponent/>
+         </div>
+
+}
+
+src/app/clientusesclient/page.jsx
+
+import ClientOneComponent from "@/app/clientusesclient/components/ClientOne";
+
+export default function ClientUsesClientPage(){
+    return <ClientOneComponent/>
+}
+
+
+Note :
+
+	  If client component uses another client component, that another client component no need to use 'use client' directive.
+	Incase the same client used by another server component,													'use client' directive must be three
+
+
+src/app/clientusesclient/components/ClientTwo.jsx
+
+// 'use client'
+
+export default function ClientTwoComponent(){
+         return <h1>Client Two Component</h1>
+}
+
+
+React carbon Integration:
+
+1.npm install -S @carbon/react
+
+app/patterns/clientusesclient/component/MyButton.jsx
+
+'use client'
+
+import { Button } from "@carbon/react"
+
+export default function MyButton() {
+
+    return <div>
+        <h1>React Carbon Lib</h1>
+        <Button>Hello</Button>
+    </div>
+
+}
+
+app/patterns/clientusesclient/page.js
+import MyButton from "@/app/patterns/clientusesclient/components/MyButton";
+export default function ServerPage() {
+    return <>
+        <MyButton />
+    </>
+}
