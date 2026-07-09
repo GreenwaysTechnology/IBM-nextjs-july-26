@@ -1465,7 +1465,7 @@ export default function ServerPage() {
 }
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-									       				Linking and Navigation
+									       						Linking and Navigation
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 In order to understand how navigation works in Next.js we need to know the common concepts
@@ -1578,5 +1578,540 @@ How to inform the user that app is loading?
 
 	You have to show that the app is still active -  You can show some progress bar.
 
+Streaming:
+
+		Streaming allows the server to send "parts of a dynamic route" to the client as soon as they are ready, rather than waiting for 
+		the entire route to be rendered. This means users see something sooner, even if parts of the page are still loading.
 
 
+ For dynamic routes, it means they can be partially prefetched , that is shared layouts and loading spinners can be requested ahead of time.
+
+Client Side transitions:
+	
+	Traditionally, navigation to a server-rendered page triggers a full page reload. This clears state, resets scroll position, and blocks 	 	interactivity.
+    	  Client side transitions feature in Next.js refers to navigating between pages or routes within app without fully reloading the browser.
+        This results in faster, smoother navigation with instant consent rendering and state preservation in SPA style.
+
+when navigation
+   ->Does not reload the page 
+  -> Uses java script router 
+  ->Fetch RSC Payload, not full html
+   ->Preserves layout state
+
+Next.js avoids this with client-side transitions using the <Link> Component , instead of reloading the entire page, it updates the content dynamically by
+
+	1.Keeping any shared layouts and UI
+	2.Replacing the current page with prefeched loading state or new page if available.
+	Client side transitions are what makes a server-rendered apps feel like client rendered pages, along with prefetching and streaming
+	it enables fast transitions, even for dynamic routes.
+
+What actually happens (Step by step)
+
+inital load
+  Browser-------->Server ---->returns ------->HTML +RSC Payload
+
+Client side transition (when you click hyper link)
+
+Click Link
+  |
+Next router intercepts
+|
+Fetch ?_rsc=xxxxx
+|
+Receive RSC flight Payload
+|
+Download payload
+|
+React reconciles tree
+|
+DOM updates(no reload)
+
+
+What can make transitions slow?
+
+1.Dynamic routes without loading.js or React.Suspense
+2.Dynamic segments  without generateStaticParams
+3.Slow networks
+4.Disable prefetching 
+5.Hydration not completed
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+														Navigation Implementation
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+There are four ways to navigate between routes in Next.js
+
+- Using the <Link> Component (Client Component)
+- Using useRouter hook (Client Component)
+- Using the native browser History API (Client)
+- Using redirect function (Server component)
+
+Navigation can happen  in two places
+
+1.Server side redirection/navigation
+   Redirection is controlled by Server
+
+2.Client Side Redirection/Navigation
+   Redirection is controlled by browser
+
+Server Redirection:
+1.redirect function
+2.permantRedirect function
+3.routeConfig file
+4.API redirections - NextReponse.redirect
+
+Client Side Navigation:
+1.Link component
+2.useRouter Hook
+3.Browser Native History API.
+
+Project:
+√ What is your project named? ... linking-navigation
+√ Would you like to use TypeScript? ... No / Yes
+√ Would you like to use ESLint? ... No / Yes
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack for `next dev`? ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+
+Link Component:
+
+ Link is react component that extends the HTML <a> element to provide client side navigation between routes.
+
+ Link component has lot of properties
+ 1.href
+ 2.replace
+ 3.scroll
+ 4.prefech
+
+Basic Navigation
+
+src/app/layout.js
+import Link from "next/link";
+
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <header>
+          <h1>Header</h1>
+          <nav>
+            <ul>
+              <li>
+                <Link href={{ pathname: "/about" }}>About</Link>
+              </li>
+              <li>
+                <Link href={{ pathname: "/services" }}>Services</Link>
+              </li>
+            </ul>
+          </nav>
+        </header>
+        {/* Body : page */}
+        {children}
+        <footer>
+          <p>This is footer</p>
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+src/app/about/layout.js
+export default function AboutLayout(props) {
+    return <div id="aboutLayout">
+        {props.children}
+    </div>
+}
+src/app/about/page.js
+export default function About(){
+    return <div>
+        <h1>About</h1>
+    </div>
+}
+
+
+src/app/services/layout.js
+export default function ServicesLayout(props) {
+    return <div id="servicesLayout">
+        {props.children}
+    </div>
+}
+
+src/app/services/page.js
+
+export default function Services(){
+    return <div>
+        <h1>Services</h1>
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									   Create Nav Bar Component
+*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+src/app/components/NavBar.jsx
+import Link from "next/link"
+
+export default function NavBar() {
+    return <nav>
+        <ul>
+            <li>
+                <Link href={{ pathname: "/about" }}>About</Link>
+            </li>
+            <li>
+                <Link href={{ pathname: "/services" }}>Services</Link>
+            </li>
+        </ul>
+    </nav>
+}
+src/app/layout.js
+import NavBar from "@/app/components/NavBar";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <header>
+          <h1>Header</h1>
+           <NavBar/>
+        </header>
+        {/* Body : page */}
+        {children}
+        <footer>
+          <p>This is footer</p>
+        </footer>
+      </body>
+    </html>
+  );
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Active Links
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+If you want to highlight which menu we have clicked, we can  show the menu highlighted
+
+How to enable active link feature?
+
+you can use hook "usePathname()" to determine if link is active or not.
+
+For example to add a css class to the active link, you can check the current pathname matches  of the link.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Active Links
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+If you want to highlight which menu we have clicked, we can  show the menu highlighted
+
+How to enable active link feature?
+
+you can use hook "usePathname()" to determine if link is active or not.
+
+For example to add a css class to the active link, you can check the current pathname matches  of the link.
+
+src/app/links.css
+.active {
+    background-color: aqua;
+}
+
+src/app/components/NavBar.jsx
+
+'use client
+import Link from "next/link";
+import { usePathname } from "next/navigation"
+import '@/app/links.css'
+
+export default function NavBar() {
+    const pathname = usePathname()
+    // console.log(pathname)
+    return <nav>
+        <ul>
+            <li>
+                <Link className={`${pathname === '/about' ? 'active' : ''}`} href={{ pathname: '/about' }}>About</Link>
+            </li>
+            <li>
+                <Link className={`${pathname === '/services' ? 'active' : ''}`} href={{ pathname: '/services' }}>Services</Link>
+            </li>
+        </ul>
+    </nav>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Using style attribute:
+'use client'
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import '@/app/links.css'
+
+export default function NavBar() {
+    const pathname = usePathname()
+    console.log('pathname', pathname)
+
+    //inline style
+    const linkStyle = (path) => {
+        return {
+            padding: '8px 12px',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            color: pathname == path ? "white" : "black",
+            background: pathname == path ? "#2563eb" : "transparent"
+
+        }
+    }
+    return <nav style={{ display: "flex", gap: "12px" }}>
+        <ul>
+            {/* <li>
+                <Link className={`${pathname === '/' ? 'active' : ''}`} href={{ pathname: "/" }}>Home</Link>
+            </li>
+            <li>
+                <Link className={`${pathname === '/about' ? 'active' : ''}`} href={{ pathname: "/about" }}>About</Link>
+            </li>
+            <li>
+                <Link className={`${pathname === '/services' ? 'active' : ''}`} href={{ pathname: "/services" }}>Services</Link>
+            </li> */}
+            <li>
+                <Link style={linkStyle("/")} href={{ pathname: "/" }}>Home</Link>
+            </li>
+            <li>
+                <Link style={linkStyle("/about")} href={{ pathname: "/about" }}>About</Link>
+            </li>
+            <li>
+                <Link style={linkStyle("/services")} href={{ pathname: "/services" }}>Services</Link>
+            </li>
+        </ul>
+    </nav>
+}
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+														useRouter Hook
+...........................................................................................................................................................................................................................................
+useRouter hook allows you programmetically change route from client components.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										useRouter Hook
+...........................................................................................................................................................................................................................................
+useRouter hook allows you programmetically change route from client components.
+
+src/app/dashboard/components/DashboardNavigator.jsx
+
+'use client'
+
+import { useRouter } from "next/navigation"
+
+export function DashBoardNavigator() {
+    const router = useRouter()
+    return <div>
+        <button onClick={() => {
+            router.push('/services')
+        }}>Services</button>
+        <button onClick={() => {
+            router.push('/about')
+        }}>About</button>
+    </div>
+}
+
+src/app/components/NavBar.jsx
+'use client'
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import '../link.css'
+
+export default function NavBar() {
+    const pathname = usePathname()
+    // console.log(pathname)
+    return <nav>
+        <ul>
+            <li>
+                <Link className={`${pathname === '/about' ? 'active' : ''}`} href={{ pathname: '/about' }}>About</Link>
+            </li>
+            <li>
+                <Link className={`${pathname === '/services' ? 'active' : ''}`} href={{ pathname: '/services' }}>Services</Link>
+            </li>
+
+              <li>
+                <Link className={`${pathname === '/dashboard' ? 'active' : ''}`} href={{ pathname: '/dashboard' }}>DashBoard</Link>
+            </li>
+        </ul>
+    </nav>
+}
+
+src/app/dashboard/page.js
+import { DashBoardNavigator } from "@/app/components/DashboardNavigator";
+
+export default function Dashboard() {
+    return <DashBoardNavigator />
+}
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		Advanced Routes - Dynamic Routes -Dynamic Route Segement
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Advanced Routes - Dynamic Routes -Dynamic Route Segement
+
+What is Dynamic Route?
+	   When you don't know the exact segment names ahead of time and want to create routes from dynamic data, you can use Dynamic Segments that are filled in at request time or prerendered at build time.
+
+URL pattern:
+/users/1
+/posts/comments/1
+	
+How to create dynamic route?
+
+Convention:
+    A dynamic segment can be created by wrapping a folder's name in square brackets.
+  [folderName]
+   eg:
+     [id] or [city] or [slug]
+      |
+     place holder.
+
+
+ What is your project named? ... dynamic-routes
+√ Would you like to use TypeScript? ... No / Yes
+√ Would you like to use ESLint? ... No / Yes
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to use Turbopack for `next dev`? ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Building Master Details Pages
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Ways to build:
+1.Using mock data
+2.Using api call
+
+Using Mock data:
+
+src/app/todos/page.js
+import TODOS from "@/app/mock-data/todos";
+import Link from "next/link";
+
+export function fetchTodos() {
+    return TODOS
+}
+
+export default function TodoPage() {
+    const todos = fetchTodos()
+
+    return <>
+        <ul>
+            {todos.map(todo => {
+                return <li key={todo.id}>
+                    <Link href={{ pathname: `/todos/${todo.id}` }}>
+                        <span>{todo.title}</span>
+                    </Link>
+                </li>
+            })}
+        </ul>
+    </>
+}
+
+src/app/todos/[id]/page.js
+export default function TodosDetailsPage() {
+    return <div>
+        <h1>Details Page</h1>
+    </div>
+}
+
+Here if you want to read the parameter of todoId, Next.js will supply id value as params via props
+
+
+export default function TodosDetailsPage(props) {
+    console.log(props.params)
+    return <div>
+        <h1>Details Page</h1>
+    </div>
+}
+Promise {
+  <pending>,
+  id: '8',
+}
+Here you can see that props.params returns Promise, if you want to read id value, you have to use then or you have to use async...await
+
+export default function TodosDetailsPage(props) {
+    console.log(props.params.id)
+    return <div>
+        <h1>Details Page</h1>
+    </div>
+}
+
+Error: Route "/todos/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at TodosDetailsPage (src\app\todos\[id]\page.js:2:29)
+  1 | export default function TodosDetailsPage(props) {
+> 2 |     console.log(props.params.id)
+    |                             ^
+  3 |     return <div>
+  4 |         <h1>Details Page</h1>
+  5 |     </div>
+
+how to read id?
+
+import TODOS from "@/app/mock-data/todos";
+import Link from "next/link";
+
+export function fetchTodoById(id) {
+    return TODOS.find(todo => todo.id === id)
+}
+export default async function TodosDetailsPage(props) {
+    //console.log(props.params.id)
+    const id = (await props.params).id
+    const todo = fetchTodoById(+id)
+    return <div>
+        <h1>{todo.id}</h1>
+        <h2>{todo.title}</h2>
+        <h2>{todo.completed ? "Completed" : "InProgress"}</h2>
+    </div>
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								Master details page - Using API Calls
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Master Page:
+
+src/app/posts/page.js
+import Link from "next/link"
+
+export async function fetchPosts() {
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts')
+    return response.json()
+}
+
+export default async function PostsPage() {
+    const posts = await fetchPosts()
+    return <div>
+        <ul>
+            {posts.map(post=>{
+                return <li key={post.id}>
+                    <Link href={{pathname:`/posts/${post.id}`}}>
+                        <span>{post.title}</span>
+                    </Link>
+                </li>
+            })}
+        </ul>
+    </div>
+}
+
+src/app/posts/[id]/page.js
+export async function fetchPostById(id) {
+    const url = `https://jsonplaceholder.typicode.com/posts/${id}`
+    const response = await fetch(url)
+    return response.json()
+}
+
+export default async function PostDetailsPage(props) {
+    const id = (await props.params).id
+    const post = await fetchPostById(+id)
+    return <div>
+        <section>
+            <h1>id:{post.id} userId: {post.userId}</h1>
+            <p>{post.title}</p>
+            <p>{post.body}</p>
+        </section>
+    </div>
+}
