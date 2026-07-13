@@ -2861,7 +2861,7 @@ export default function PostPage(){
     </>
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										 		Building REST APIs in Next.js  
+										 					Building REST APIs in Next.js  
 ...........................................................................................................................................................................................................................................
 
 REST api can be used to write rest api which may talk to databases or external rest api or Graphql api or microservices
@@ -3104,7 +3104,7 @@ export async function GET(req){
 Task: wrap the biz logic to filter data based on email
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-									CURD operation with External API
+			CURD operation with External API
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 src/app/api/comments/route.js
@@ -3206,7 +3206,7 @@ export async function DELETE(req, { params }) {
     }
 }
 
-&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&									 						How to integrate with UI
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&									 							How to integrate with UI
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 export async function fetchComments() {
@@ -3237,7 +3237,7 @@ Task: Write An api to filter data based on query param
 url is :https://jsonplaceholder.typicode.com/comments?postId=1
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										Enviroment Variables
+														Enviroment Variables
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 Next.js Comes with built in support for enviroment variables, which allows you to isloate configuration from the code.
@@ -3336,7 +3336,7 @@ export default function Home() {
 Task:
 URL configuration for Rest API
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										Client Components and env variables
+													Client Components and env variables
 
 .env.local
 SEED_VALUE=10
@@ -3381,3 +3381,320 @@ export default function Counter() {
         }}>+</button>
     </div>
 }
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&															Database Integration
+...................................................................................
+
+Next js can integrate with any data base including sql (mysql,oracle,postgresql) and no sql (mongo,neodb,redis)
+
+In order to talk to databases, application uses database drivers and apis....
+
+Mostly we use use database frameworks called "ORM- Object Relational Mapping" Framework..
+
+For Node js, We have many frameworks...
+
+1.Prisma
+2.Sequelize
+3.Type ORM
+etc...
+
+1.database  - mysql or mssql, or mongo database.
+
+How to setup database?
+
+ 1.download database and you have to install
+      https://www.postgresql.org/download/windows/
+ 2.via docker
+ 
+Now a days no body , installing databases directly into machine, rather, we can install via docker.
+
+For training purposes we are going to use "immemory database". You dont need to install database manually either directly or via docker.
+
+In-Memory Databases:
+1.sqlite
+
+2.Database drivers
+ It is set of js programs to connect with databases, and sending sql statements.
+
+
+Note: Create Typescript based project template
+
+1.create project with typescript 
+npx create-next-app@latest
+√ What is your project named? ... serveractions-db
+√ Would you like to use the recommended Next.js defaults? » No, customize settings
+√ Would you like to use TypeScript? ... No / Yes
+√ Which linter would you like to use? » None
+√ Would you like to use React Compiler? ... No / Yes
+√ Would you like to use Tailwind CSS? ... No / Yes
+√ Would you like your code inside a `src/` directory? ... No / Yes
+√ Would you like to use App Router? (recommended) ... No / Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No / Yes
+√ What import alias would you like configured? ... @/*
+√ Would you like to include AGENTS.md to guide coding agents to write up-to-date Next.js code? ... No / Yes
+
+2. Set up Prisma ORM
+
+npm install prisma @types/node @types/better-sqlite3 --save-dev
+npm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
+
+Here's what each package does:
+prisma - The Prisma CLI for running commands like prisma init, prisma db pull, and prisma generate
+@prisma/client - The Prisma Client library for querying your database
+@prisma/adapter-better-sqlite3 - The SQLite driver adapter that connects Prisma Client to your database
+@types/better-sqlite3 - TypeScript type definitions for better-sqlite3
+dotenv - Loads environment variables from your .env file
+
+3. Initialize Prisma ORM
+SQLite:
+SQLite is a lightweight, file-based database that's perfect for development, prototyping, and small applications. It requires no setup and stores data in a local file. 
+
+4.Introspect your database - Which is optional, incase if you have database setup already, then this setp will be usefull
+
+px prisma db pull
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+× Introspecting based on datasource defined in prisma\schema.prisma
+Error:
+P1003 The introspected database does not exist:
+
+prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+
+To fix this, you have two options:
+
+- manually create a database.
+- make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
+
+Then you can run prisma db pull again.
+
+
+5.Define Model in schema.prisma
+
+schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String @unique
+}
+6.sync models with database called migration
+npx prisma migrate dev --name init
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+Applying migration `20260506051629_init`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20260506051629_init/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+7.Check the tables are generated in the database or not
+>npx prisma studio
+You can see the tables are created.
+
+
+8.Generate Prisma client dependencies
+
+Generate Prisma Client based on your introspected schema:
+
+>npx prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.8.0) to .\generated\prisma in 35ms
+
+
+9.create prisma client api
+
+
+src/app/lib/prisma.ts
+
+import "dotenv/config"
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaClient } from "../../../generated/prisma/client"
+
+const connectionString = `${process.env.DATABASE_URL}`
+
+const adapter = new PrismaBetterSqlite3({ url: connectionString })
+const prisma = new PrismaClient({ adapter })
+
+export { prisma }
+
+10.Write Rest api
+
+src/app/api/users/route.js
+import { prisma } from "@/app/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET() {
+    const users = await prisma.user.findMany()
+    return NextResponse.json(users)
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const user = await req.json()
+        const res = await prisma.user.create({
+            data: user
+        })
+        return NextResponse.json(res, {
+            status: 201, headers: {
+                'Content-Type': "application/json", "url": 'api/create'
+            }
+        })
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: 500 })
+    }
+}
+
+src/app/api/users/[id]/route.js
+import { prisma } from "@/app/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+
+
+export async function GET(req: NextRequest, obj: any) {
+    try {
+
+        const id = +(await obj.params).id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        }
+        return NextResponse.json(user)
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: 500 })
+    }
+}
+export async function PUT(req: NextRequest, obj: any) {
+    try {
+        const id = +(await obj.params).id
+        const payload = await req.json()
+        const tmpUser = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (!tmpUser) {
+            return NextResponse.json({ message: 'User not found' }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } else {
+            const user = await prisma.user.update({
+                where: {
+                    id: id
+                },
+                data: payload
+            })
+            return NextResponse.json(user)
+
+        }
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: 500 })
+    }
+}
+
+export async function DELETE(req: NextRequest, obj: any) {
+    try {
+        const id = +(await obj.params).id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (user) {
+            await prisma.user.delete({
+                where: {
+                    id: id
+                }
+            })
+            return NextResponse.json({ message: `USER with id ${id} has been successfully deleted` }, {
+                status: 201, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } else {
+            return NextResponse.json({ message: `No User found with ${id}` }, {
+                status: 404, headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        }
+    }
+    catch (err) {
+        return NextResponse.json({ err: err }, { status: err.status })
+    }
+}
+
+8.UI integration
+src/app/users/page.tsx
+
+async function getUsers() {
+    const users = await fetch('http://localhost:3000/api/users')
+    return await users.json()
+}
+
+
+export default async function UserPage() {
+    const users = await getUsers()
+    return <div className="m-40">
+        <ul>
+            {users.map(user => {
+                return <li key={user.id}>{
+                    <>
+                        <p>{user.name}</p>
+                        <p>{user.email}</p>
+                        <p>{user.role}</p>
+                    </>
+                }</li>
+            })}
+        </ul>
+    </div>
+}
+
+Task:
+ Add , Update, Delete UI.
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,21 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+// Models  - Enities -  table defintions
+model User{
+  // columns 
+  // Id is column which is primary key and its value is auto generated
+  id Int @id @default(autoincrement())
+  name  String
+  email String @unique
+}
