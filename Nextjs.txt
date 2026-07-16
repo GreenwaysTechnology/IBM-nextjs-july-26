@@ -6544,15 +6544,427 @@ export async function generateStaticParams() {
         }
     });
 }
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				Proxy (Middlewares)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+A proxy runs before a request reaches your page, route handler, or API. It sits between the browser and your application, allowing you to inspect or modify the request and response.
+
+Request Flow:
+
+Browser
+   │
+   ▼
+Proxy (proxy.ts)
+   │
+   ├── Check URL
+   ├── Check Cookies
+   ├── Check Headers
+   ├── Redirect
+   ├── Rewrite
+   ├── Authentication & Authroziation
+   └── Logging
+   │
+   ▼
+Next.js Route/Page/API
+   │
+   ▼
+Response
+
+When is Proxy Executed?
+
+Whenever a request matches the matcher configuration.
+
+export const config = {
+  matcher: ['/dashboard/:path*'],
+}
+Request:
+
+http://localhost:3000/dashboard
+
+Execution order:
+
+Browser
+      │
+      ▼
+proxy.ts
+      │
+      ▼
+app/dashboard/page.tsx
+
+Basic Structure
+
+import { NextRequest, NextResponse } from 'next/server'
+
+export function proxy(request: NextRequest) {
+    return NextResponse.next()
+}
+
+export const config = {
+    matcher: ['/dashboard/:path*']
+}
+
+NextResponse.next() means:
+
+Continue processing the request normally.
+
+Create new Project:
+npx create-next-app@latest
+
+create proxy.js | ts  - under src/proxy.js 
+
+proxy is just a function can be exported using "export default or export"
+function name must be proxy
+
+What Can Proxy Do?
+
+1. Redirect
+
+Send the user to a different URL.
+
+import { NextResponse } from "next/server";
+
+//redirection execution : http://localhost:3000/settings ---> /dashboard
+export function proxy(request) {
+    console.log(request.url)
+    return NextResponse.redirect(
+        new URL('/dashboard', request.url)
+    )
+}
+
+//configuration :
+export const config = {
+    matcher: ['/settings/:path*']
+}
+Request
+
+/dashboard
+
+Response
+
+/dashboard
+
+2. Rewrite
+
+Internally serve another page without changing the browser URL.
+
+import { NextResponse } from "next/server";
+
+//rewrite execution : http://localhost:3000/settings ---> /settings
+export function proxy(request) {
+    console.log(request.url)
+    return NextResponse.rewrite(
+        new URL('/dashboard', request.url)
+    )
+}
+
+//configuration :
+export const config = {
+    matcher: ['/settings/:path*']
+}
+
+Browser URL
+
+/settings
+
+Actual page served
+
+/dashboard
+
+The user still sees:
+
+/settings
+
+3. Authentication
+
+The most common use case.
+
+export function proxy(request: NextRequest) {
+
+    const token = request.cookies.get('token')
+
+    if (!token) {
+        return NextResponse.redirect(
+            new URL('/login', request.url)
+        )
+    }
+
+    return NextResponse.next()
+}
+
+Flow
+
+User
+ │
+ ▼
+Dashboard Request
+ │
+ ▼
+Proxy
+ │
+ ├── Token exists?
+ │      │
+ │      ├── Yes → Dashboard
+ │      │
+ │      └── No → Login
 
 
+4. Authorization (Role-Based Access)
+export function proxy(request: NextRequest) {
+
+    const role = request.cookies.get('role')?.value
+
+    if (role !== 'ADMIN') {
+        return NextResponse.redirect(
+            new URL('/access-denied', request.url)
+        )
+    }
+
+    return NextResponse.next()
+}
+
+5. Read Cookies
+const token = request.cookies.get('token')
+
+console.log(token?.value)
+
+6. Read Headers
+const userAgent = request.headers.get('user-agent')
+
+console.log(userAgent)
+
+7. Add Headers
+export function proxy(request: NextRequest) {
+
+    const response = NextResponse.next()
+
+    response.headers.set(
+        'x-company', 'OpenAI'
+    )
+
+    return response
+}
+
+8. Logging
+import { NextResponse } from "next/server";
+
+export function log(message) {
+    console.log('log : [info] ',message)
+}
+//http://localhost:3000/dashboard   ---- /dashboard
+export function proxy(request) {
+    const response = NextResponse.next()
+    //set any custom response headers
+    response.headers.set('CompanyName', 'IBM')
+    response.headers.set('HeadOffice', 'Banaglore')
+
+    //logging feature
+    log(request.nextUrl.pathname)
+
+    return response
+}
+
+//configuration :
+export const config = {
+    matcher: ['/dashboard/:path*']
+}
+
+Console
+
+/dashboard
+/profile
+/admin
+
+9. Locale Detection
+export function proxy(request: NextRequest) {
+
+    const language = request.headers.get('accept-language')
+
+    console.log(language)
+
+    return NextResponse.next()
+}
+
+10. Block Requests
+export function proxy(request: NextRequest) {
+
+    const ip = request.headers.get('x-forwarded-for')
+
+    if (ip === '192.168.1.100') {
+        return new NextResponse(
+            'Blocked',
+            { status: 403 }
+        )
+    }
+
+    return NextResponse.next()
+}
+
+Matcher
+
+Controls which requests execute the proxy.
+
+export const config = {
+    matcher: [
+        '/admin/:path*',
+        '/dashboard/:path*'
+    ]
+}
+
+Only these routes execute the proxy.
+
+Common Uses of Proxy
+
+-----------------------------------------------------------------------------
+| Use Case                  | Description                                                         
+------------------------------------------------------------------------------ 
+| Authentication              | Redirect unauthenticated users to the login page.                        |
+| Authorization               | Restrict access based on user roles or permissions.                      |
+| Redirects                   | Forward users from old URLs to new ones.                                 |
+| URL Rewriting               | Serve different content without changing the visible URL.                |
+| Internationalization (i18n) | Detect locale and route users to language-specific pages.                |
+| A/B Testing                 | Route users to different versions of a page.                             |
+| Feature Flags               | Enable or disable features before rendering pages.                       |
+| Security                    | Block requests based on IP, headers, or other 				criteria.                  |
+| Logging & Analytics         | Record request information for monitoring.                               |
+| Header Manipulation         | Add or modify request/response headers before 				reaching your application. |
+
+eg:
+
+import { NextResponse } from 'next/server'
+ 
+// This function can be marked `async` if using `await` inside
+export function proxy(request) {
+  return NextResponse.redirect(new URL('/home', request.url))
+}
+ 
+// Alternatively, you can use a default export:
+// export default function proxy(request) { ... }
+ 
+export const config = {
+  matcher: '/about/:path*',
+}
 
 
+Example 1: Multiple Route Matchers
+
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function proxy(request: NextRequest) {
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [
+    '/about/:path*',
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/admin/:path*',
+  ],
+}
+
+The proxy will execute for:
+
+/about
+/about/team
+
+/dashboard
+/dashboard/users
+
+/profile
+/profile/settings
+
+/admin
+/admin/reports
+
+Example 2: Exact and Nested Routes
+
+This matches:
+
+/login
+/register
+/dashboard
+/dashboard/settings
+/products
+/products/mobile/iphone
+
+Example 3: Excluding API and Static Files
+A common production configuration is:
+
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+}
+
+This runs the proxy for every page except:
+
+/api/*
+/_next/static/*
+/_next/image/*
+/favicon.ico
+
+Example 4: Multiple Patterns with Exclusions
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/profile/:path*',
+    '/settings/:path*',
+  ],
+}
+
+Example 5: Handling Everything in One Proxy
 
 
+import { NextResponse } from "next/server";
 
+//normal execution : http://localhost:3000/dashboard ---> /dashboard
+export function proxy(request) {
+    const response = NextResponse.next()
+    const pathname = request.nextUrl.pathname
+    if (pathname.startsWith('/admin')) {
+        response.headers.set('page', 'admin')
+    }
 
+    if (pathname.startsWith('/dashboard')) {
+        response.headers.set('page', 'dashboard')
+    }
+    if (pathname.startsWith('/profile')) {
+        response.headers.set('page', 'profile')
+    }
+    return response
 
+}
 
+//configuration :
+export const config = {
+    matcher: [
+        '/dashboard/:path*',
+        '/about/:path*',
+        '/profile/:path*',
+        '/admin/:path*'
+    ]
+}
 
+matcher accepts:
+
+A single string:
+
+matcher: '/about/:path*'
+
+An array of strings:
+
+matcher: [
+  '/about/:path*',
+  '/dashboard/:path*',
+  '/profile/:path*'
+]
+Each pattern uses Next.js route matching syntax:
+:path* → zero or more path segments
+:path+ → one or more path segments
+:path? → optional segment
+
+Using an array is the recommended approach when you want the same proxy logic to apply to multiple route groups.
 
