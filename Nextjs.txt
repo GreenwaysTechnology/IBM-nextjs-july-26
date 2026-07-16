@@ -6968,3 +6968,68 @@ Each pattern uses Next.js route matching syntax:
 
 Using an array is the recommended approach when you want the same proxy logic to apply to multiple route groups.
 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Authentication &&  Authorization using Session Tracking
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+													"Next.js Session Tracking"
+
+
+you’re probably looking for ways to keep track of a user’s session (login state, cart, preferences, etc.) across requests and page reloads.
+
+🔑 Common Approaches for Session Tracking in Next.js
+
+1. Using Cookies (Recommended for Server-Side Auth)
+
+	Store session identifiers (like a JWT or session ID).
+	Accessible both on server components and API routes.
+	Secure with HttpOnly, SameSite, and Secure.
+
+Example with cookies API (Next.js App Router):
+
+Setup Next.js project:
+
+Login API route → validate user & set cookie
+Logout API route → clear cookie
+Middleware/proxy → protect routes
+Dashboard page → show session state
+Client-side login form
+
+What is cookie?
+A cookie is a small piece of data that a website stores in your browser.
+initally server will send cookie send via http response header, later browser receives and downloads and keep it inside browser storage
+
+steps
+1.YOu login
+2.Server creates a cookie
+3.The browser stores
+4.Every time you visit another page, the browser automaticlly sends
+  cookie
+5.The server recongizes your session and knows you are logged in.
+
+set-cookie : cookie value - server will send
+cookie - reading cookie - browser reads
+
+In Next.js:
+ cookies() function which returns
+
+import { cookies } from 'next/headers'
+
+ const cookieStore = await cookies()
+
+methods:
+ cookieStore.set
+ cookieStore.get
+ cookieStore.delete
+options/properties
+name
+value
+expires -life of cookie
+maxAge -life of cookies in seconds
+
+
+
+
+
+
+
